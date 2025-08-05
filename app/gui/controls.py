@@ -19,66 +19,43 @@ pan_y = size[1] // 2
 step_angle = pi / 60
 step_zoom = 10
 step_pan = 5
-resize = False
 iter = 1
+resize = False
+modo_fractal = 1
 
-
-
-
-
-def manejar_transformaciones():
-    global resize, angle, scale, pan_x, pan_y
+def manejar_transformaciones_seguidas():
+    global angle, scale, pan_x, pan_y, step_angle, step_zoom, step_pan, iter, resize
     keys = pygame.key.get_pressed()
     if keys[pygame.K_UP]:
         scale += step_zoom
-        resize = True
     if keys[pygame.K_DOWN]:
         scale = max(0.1, scale - step_zoom)
-        resize = True
     if keys[pygame.K_LEFT]:
         angle -= step_angle
-        resize = True
     if keys[pygame.K_RIGHT]:
         angle += step_angle
-        resize = True
     if keys[pygame.K_w]:
         pan_y -= step_pan
-        resize = True
     if keys[pygame.K_s]:
         pan_y += step_pan
-        resize = True
     if keys[pygame.K_a]:
         pan_x -= step_pan
-        resize = True
     if keys[pygame.K_d]:
-        pan_x += step_pan
-        resize = True
-        
+        pan_x += step_pan   
             
-    
+def manejar_eventos_teclado(event):
+    global iter, modo_fractal
+    if event.key == pygame.K_e:
+        iter += 1
+    elif event.key == pygame.K_q:
+        iter = max(1, iter - 1)
+    elif event.key == pygame.K_1:
+        modo_fractal = 1
+    elif event.key == pygame.K_2:
+        modo_fractal = 2
 
 
-def manejar_eventos():
-    global running, iter, resize, angle, scale, pan_x, pan_y
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            return False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_1:
-                screen.fill((0, 0, 0))
-                dibujar_sierpinski(screen, Sierpinski, scale, angle, pan_x, pan_y, iter)
-                pygame.display.flip()
-            elif event.key == pygame.K_2:
-                screen.fill((0, 0, 0))
-                dibujar_koch(screen, koch, scale, angle, pan_x, pan_y, iter)
-                pygame.display.flip()
-            elif event.key == pygame.K_e:
-                    iter += 1
-                    resize = True
-            elif event.key == pygame.K_q:
-                    iter = max(1, iter - 1)
-                    resize = True
-            return True  
+
 
 
 
@@ -92,12 +69,29 @@ def dibujar_koch(screen, koch, scale, angle, pan_x, pan_y, iter):
     for start, end in segmentos:
         pygame.draw.line(screen, (255, 255, 255), start, end)
 
+
+
 # Mantiene la ventana abierta hasta que la cierres
 running = True
+clock = pygame.time.Clock()
 while running:
-    running = manejar_eventos()
-    if resize:
-        manejar_transformaciones()
-        resize = False
-    pygame.time.Clock().tick(30)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            manejar_eventos_teclado(event)
+            
+    
+    manejar_transformaciones_seguidas()
+    screen.fill((0, 0, 0))
+    if modo_fractal == 1:
+        dibujar_koch(screen, koch, scale, angle, pan_x, pan_y, iter)
+    elif modo_fractal == 2:
+        dibujar_sierpinski(screen, Sierpinski, scale, angle, pan_x, pan_y, iter)   
+    
+    pygame.display.flip()
+    clock.tick(50)
+        
+
+
 pygame.quit()
