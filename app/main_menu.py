@@ -237,6 +237,7 @@ if __name__ == "__main__":
                     fractal_num = menu.selected + 1
                     import os
                     script_path = os.path.join(os.path.dirname(__file__), "gui", "controls.py")
+                    
                     subprocess.Popen([sys.executable, script_path, str(fractal_num)])
                 elif event.key in (K_1, K_2, K_3):
                     pass
