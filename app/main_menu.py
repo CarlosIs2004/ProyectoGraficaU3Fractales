@@ -8,7 +8,7 @@ CONTROLS = [
     "Flechas: Rotar/Escalar (arriba/abajo: zoom, izq/der: rotar)",
     "W/S/A/D: Trasladar (arriba/abajo/izq/der)",
     "Q/E: Disminuir/Aumentar iteración",
-    "1, 2, 3: Selección rápida",
+    "1, 2, 3, 4, 5: Selección rápida",
     "ENTER: Abrir fractal seleccionado",
     "ESC: Salir"
 ]
@@ -25,6 +25,7 @@ class MenuPrincipal:
             g = int(color_top[1] * (1 - ratio) + color_bottom[1] * ratio)
             b = int(color_top[2] * (1 - ratio) + color_bottom[2] * ratio)
             pygame.draw.line(self.screen, (r, g, b), (0, y), (WIDTH, y))
+    
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -41,8 +42,10 @@ class MenuPrincipal:
             self.control_font = pygame.font.SysFont("Arial", 27)
         self.title_font = pygame.font.SysFont("Segoe UI", 54, bold=True)
         self.running = True
-        self.fractales = ["Copo de Koch", "Triángulo de Sierpinski", "Árbol Recursivo"]
+        self.fractales = ["Copo de Koch", "Triángulo de Sierpinski", "Árbol Recursivo", 
+                         "Conjunto de Mandelbrot", "Conjunto de Julia"]
         self.selected = 0
+    
     def draw_menu(self):
         # Fondo con gradiente
         self.draw_gradient((25, 40, 80), (10, 10, 30))
@@ -54,7 +57,7 @@ class MenuPrincipal:
         fractal_col_x = 80
         fractal_col_width = 500
         boton_espaciado = 80
-        espacio_extra = 100  # antes 40
+        espacio_extra = 100
         y_offset = 170 + espacio_extra
 
         # Subtítulo alineado a la izquierda sobre los botones
@@ -85,16 +88,28 @@ class MenuPrincipal:
                 trunk = pygame.Rect(icon_x + icon_size//2 - 5, icon_y + 6, 10, 18)
                 pygame.draw.rect(self.screen, (120, 80, 40), trunk)
                 pygame.draw.circle(self.screen, (60, 180, 60), (icon_x + icon_size//2, icon_y), icon_size//2 - 6)
+            elif i == 3:
+                # Mandelbrot: círculo con gradiente (representando el conjunto)
+                pygame.draw.circle(self.screen, (200, 100, 255), (icon_x + icon_size//2, icon_y), icon_size//2)
+                pygame.draw.circle(self.screen, (100, 50, 150), (icon_x + icon_size//2, icon_y), icon_size//3)
+            elif i == 4:
+                # Julia: anillo con colores
+                pygame.draw.circle(self.screen, (255, 150, 100), (icon_x + icon_size//2, icon_y), icon_size//2)
+                pygame.draw.circle(self.screen, (10, 10, 30), (icon_x + icon_size//2, icon_y), icon_size//3)
 
-            # Texto del fractal
-            color = (60, 180, 255) if i == self.selected else (40, 40, 60)
+            # Texto del fractal con colores diferenciados
+            if i == self.selected:
+                color = (60, 180, 255)
+            else:
+                color = (180, 200, 230) if i < 3 else (220, 180, 255)  # Color especial para fractales complejos
+            
             text = self.fractal_font.render(f"{i+1}. {nombre}", True, color)
             tx = icon_x + icon_size + icon_gap
             ty = y + list_item_height//2 - text.get_height()//2
             self.screen.blit(text, (tx, ty))
 
-        # Mantener controles a la misma altura que los botones
-        controls_rect = pygame.Rect(WIDTH - 520, y_offset - 80, 440, 400)
+        # Controles - ajustar posición para 5 fractales
+        controls_rect = pygame.Rect(WIDTH - 520, y_offset - 80, 440, 430)
         pygame.draw.rect(self.screen, (35, 60, 120), controls_rect, border_radius=22)
         pygame.draw.rect(self.screen, (120, 180, 255), controls_rect, 4, border_radius=22)
 
@@ -111,91 +126,130 @@ class MenuPrincipal:
             (["W", "A", "S", "D"], "teclas_wasd", "Trasladar (arriba/abajo/izq/der)"),
             ("Q", "tecla", "Disminuir iteración"),
             ("E", "tecla", "Aumentar iteración"),
+            (["1", "2", "3", "4", "5"], "teclas_numeros", "Selección rápida"),
             ("ENTER", "tecla_larga", "Abrir fractal seleccionado"),
             ("ESC", "tecla_larga", "Salir"),
         ]
+        
         # Título 'Controles' dentro del recuadro
         controles_title = self.font.render("Controles", True, (255, 255, 180))
         self.screen.blit(controles_title, (controls_rect.x + 30, controls_rect.y + 18))
-        espacio_titulo = 18  # espacio extra debajo del título
+        espacio_titulo = 18
 
         # --- Sección de explicación de fractales ---
         explicaciones = [
             "Curva fractal que genera un copo de nieve a partir de subdivisiones recursivas.",
-            "Triángulo subdividido recursivamente, creando un patrón de huecos en forma de triángulo.",
-            "Árbol generado por ramas que se bifurcan recursivamente, simulando el crecimiento natural."
+            "Triángulo subdividido recursivamente, creando un patrón de huecos triangulares.",
+            "Árbol generado por ramas que se bifurcan recursivamente, simulando crecimiento natural.",
+            "Conjunto de números complejos que no escapan bajo iteración z² + c, formando patrones infinitos.",
+            "Conjunto fractal donde cada punto z se itera con z² + c constante, creando formas orgánicas."
         ]
-        exp_rect = pygame.Rect(80, y_offset + 3 * (list_item_height + 8) + 160, WIDTH - 160, 110)
+        
+        exp_rect = pygame.Rect(80, y_offset + 5 * (list_item_height + 8) + 50, WIDTH - 160, 130)
         pygame.draw.rect(self.screen, (30, 38, 60), exp_rect, border_radius=18)
         pygame.draw.rect(self.screen, (120, 180, 255), exp_rect, 3, border_radius=18)
         exp_title_font = pygame.font.SysFont("Segoe UI", 26, bold=True)
-        exp_text_font = pygame.font.SysFont("Segoe UI", 20)
+        exp_text_font = pygame.font.SysFont("Segoe UI", 19)
         exp_title = exp_title_font.render("¿Qué hace este fractal?", True, (255, 255, 200))
         self.screen.blit(exp_title, (exp_rect.x + 24, exp_rect.y + 16))
+        
+        # Texto de explicación con wrap para líneas largas
         exp_text = explicaciones[self.selected]
-        exp_text_render = exp_text_font.render(exp_text, True, (220, 230, 255))
-        self.screen.blit(exp_text_render, (exp_rect.x + 24, exp_rect.y + 56))
+        words = exp_text.split()
+        lines = []
+        current_line = []
+        max_width = exp_rect.width - 48
+        
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            if exp_text_font.size(test_line)[0] <= max_width:
+                current_line.append(word)
+            else:
+                if current_line:
+                    lines.append(' '.join(current_line))
+                current_line = [word]
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        for i, line in enumerate(lines):
+            exp_text_render = exp_text_font.render(line, True, (220, 230, 255))
+            self.screen.blit(exp_text_render, (exp_rect.x + 24, exp_rect.y + 56 + i * 25))
+
         y = controls_rect.y + 60 + espacio_titulo
         for icono, tipo, texto in controles_info:
-                if tipo == "flecha_dual":
-                    # Dibuja dos flechas en una sola celda
-                    rect = pygame.Rect(controls_rect.x + 30, y, 48, 28)
-                    pygame.draw.rect(self.screen, (255, 255, 220), rect, border_radius=6)
-                    pygame.draw.rect(self.screen, (180, 180, 80), rect, 2, border_radius=6)
-                    if icono == "↑/↓":
-                        self.screen.blit(arrow_font.render("↑", True, (80, 80, 40)), (rect.x+5, rect.y+1))
-                        self.screen.blit(arrow_font.render("↓", True, (80, 80, 40)), (rect.x+25, rect.y+1))
-                    else:
-                        self.screen.blit(arrow_font.render("←", True, (80, 80, 40)), (rect.x+5, rect.y+1))
-                        self.screen.blit(arrow_font.render("→", True, (80, 80, 40)), (rect.x+25, rect.y+1))
-                    # Mostrar el texto a la derecha del icono
-                    txt = control_text_font.render(texto, True, (220, 240, 255))
-                    self.screen.blit(txt, (rect.right + 16, rect.y + rect.height//2 - txt.get_height()//2))
-                    y += 40
-                    continue
-                if tipo == "teclas_wasd":
-                    # Dibuja las 4 teclas W, A, S, D en línea
-                    rects = []
-                    x0 = controls_rect.x + 30
-                    for i, letra in enumerate(icono):
-                        rx = x0 + i*32
-                        rect = pygame.Rect(rx, y, 28, 28)
-                        rects.append(rect)
-                        pygame.draw.rect(self.screen, (220, 230, 255), rect, border_radius=6)
-                        pygame.draw.rect(self.screen, (80, 120, 200), rect, 2, border_radius=6)
-                        self.screen.blit(key_font.render(letra, True, (40, 60, 120)), (rect.x+6, rect.y+2))
-                    last_rect = rects[-1]
-                    txt = control_text_font.render(texto, True, (220, 240, 255))
-                    self.screen.blit(txt, (last_rect.right + 16, last_rect.y + last_rect.height//2 - txt.get_height()//2))
-                    y += 40
-                    continue
-                if tipo == "tecla":
-                    rect = pygame.Rect(controls_rect.x + 30, y, 28, 28)
+            if tipo == "flecha_dual":
+                # Dibuja dos flechas en una sola celda
+                rect = pygame.Rect(controls_rect.x + 30, y, 48, 28)
+                pygame.draw.rect(self.screen, (255, 255, 220), rect, border_radius=6)
+                pygame.draw.rect(self.screen, (180, 180, 80), rect, 2, border_radius=6)
+                if icono == "↑/↓":
+                    self.screen.blit(arrow_font.render("↑", True, (80, 80, 40)), (rect.x+5, rect.y+1))
+                    self.screen.blit(arrow_font.render("↓", True, (80, 80, 40)), (rect.x+25, rect.y+1))
+                else:
+                    self.screen.blit(arrow_font.render("←", True, (80, 80, 40)), (rect.x+5, rect.y+1))
+                    self.screen.blit(arrow_font.render("→", True, (80, 80, 40)), (rect.x+25, rect.y+1))
+                txt = control_text_font.render(texto, True, (220, 240, 255))
+                self.screen.blit(txt, (rect.right + 16, rect.y + rect.height//2 - txt.get_height()//2))
+                y += 40
+                continue
+            if tipo == "teclas_wasd":
+                # Dibuja las 4 teclas W, A, S, D en línea
+                rects = []
+                x0 = controls_rect.x + 30
+                for i, letra in enumerate(icono):
+                    rx = x0 + i*32
+                    rect = pygame.Rect(rx, y, 28, 28)
+                    rects.append(rect)
                     pygame.draw.rect(self.screen, (220, 230, 255), rect, border_radius=6)
                     pygame.draw.rect(self.screen, (80, 120, 200), rect, 2, border_radius=6)
-                    self.screen.blit(key_font.render(icono, True, (40, 60, 120)), (rect.x+6, rect.y+2))
-                    txt = control_text_font.render(texto, True, (220, 240, 255))
-                    self.screen.blit(txt, (rect.right + 16, rect.y + rect.height//2 - txt.get_height()//2))
-                    y += 40
-                    continue
-                if tipo == "tecla_larga":
-                    rect = pygame.Rect(controls_rect.x + 30, y, 60, 28)
-                    color = (220, 255, 220) if icono == "ENTER" else (255, 220, 220)
-                    border = (80, 180, 80) if icono == "ENTER" else (180, 80, 80)
-                    text_color = (40, 80, 40) if icono == "ENTER" else (120, 40, 40)
-                    pygame.draw.rect(self.screen, color, rect, border_radius=6)
-                    pygame.draw.rect(self.screen, border, rect, 2, border_radius=6)
-                    if icono == "ENTER":
-                        enter_font = pygame.font.SysFont("Segoe UI", 15, bold=True)
-                        enter_text = enter_font.render("ENTER", True, text_color)
-                        self.screen.blit(enter_text, (rect.x + (rect.width - enter_text.get_width())//2, rect.y + (rect.height - enter_text.get_height())//2))
-                    else:
-                        self.screen.blit(key_font.render(icono, True, text_color), (rect.x+8, rect.y+2))
-                    txt = control_text_font.render(texto, True, (220, 240, 255))
-                    self.screen.blit(txt, (rect.right + 16, rect.y + rect.height//2 - txt.get_height()//2))
-                    y += 40
-                    continue
-
+                    self.screen.blit(key_font.render(letra, True, (40, 60, 120)), (rect.x+6, rect.y+2))
+                last_rect = rects[-1]
+                txt = control_text_font.render(texto, True, (220, 240, 255))
+                self.screen.blit(txt, (last_rect.right + 16, last_rect.y + last_rect.height//2 - txt.get_height()//2))
+                y += 40
+                continue
+            if tipo == "teclas_numeros":
+                # Dibuja las 5 teclas de números 1,2,3,4,5
+                rects = []
+                x0 = controls_rect.x + 30
+                for i, numero in enumerate(icono):
+                    rx = x0 + i*28
+                    rect = pygame.Rect(rx, y, 24, 28)
+                    rects.append(rect)
+                    pygame.draw.rect(self.screen, (255, 240, 220), rect, border_radius=6)
+                    pygame.draw.rect(self.screen, (200, 120, 80), rect, 2, border_radius=6)
+                    self.screen.blit(key_font.render(numero, True, (120, 60, 40)), (rect.x+4, rect.y+2))
+                last_rect = rects[-1]
+                txt = control_text_font.render(texto, True, (220, 240, 255))
+                self.screen.blit(txt, (last_rect.right + 16, last_rect.y + last_rect.height//2 - txt.get_height()//2))
+                y += 40
+                continue
+            if tipo == "tecla":
+                rect = pygame.Rect(controls_rect.x + 30, y, 28, 28)
+                pygame.draw.rect(self.screen, (220, 230, 255), rect, border_radius=6)
+                pygame.draw.rect(self.screen, (80, 120, 200), rect, 2, border_radius=6)
+                self.screen.blit(key_font.render(icono, True, (40, 60, 120)), (rect.x+6, rect.y+2))
+                txt = control_text_font.render(texto, True, (220, 240, 255))
+                self.screen.blit(txt, (rect.right + 16, rect.y + rect.height//2 - txt.get_height()//2))
+                y += 40
+                continue
+            if tipo == "tecla_larga":
+                rect = pygame.Rect(controls_rect.x + 30, y, 60, 28)
+                color = (220, 255, 220) if icono == "ENTER" else (255, 220, 220)
+                border = (80, 180, 80) if icono == "ENTER" else (180, 80, 80)
+                text_color = (40, 80, 40) if icono == "ENTER" else (120, 40, 40)
+                pygame.draw.rect(self.screen, color, rect, border_radius=6)
+                pygame.draw.rect(self.screen, border, rect, 2, border_radius=6)
+                if icono == "ENTER":
+                    enter_font = pygame.font.SysFont("Segoe UI", 15, bold=True)
+                    enter_text = enter_font.render("ENTER", True, text_color)
+                    self.screen.blit(enter_text, (rect.x + (rect.width - enter_text.get_width())//2, rect.y + (rect.height - enter_text.get_height())//2))
+                else:
+                    self.screen.blit(key_font.render(icono, True, text_color), (rect.x+8, rect.y+2))
+                txt = control_text_font.render(texto, True, (220, 240, 255))
+                self.screen.blit(txt, (rect.right + 16, rect.y + rect.height//2 - txt.get_height()//2))
+                y += 40
+                continue
 
         pygame.display.flip()
 
@@ -212,10 +266,11 @@ class MenuPrincipal:
                         self.selected = (self.selected + 1) % len(self.fractales)
                     elif event.key == K_UP:
                         self.selected = (self.selected - 1) % len(self.fractales)
-                    elif event.key in (K_1, K_2, K_3):
-                        # Ejecutar la visualización del fractal seleccionado por número
-                        pass
-                    
+                    elif event.key in (K_1, K_2, K_3, K_4, K_5):
+                        # Selección rápida por número
+                        num = event.key - K_1  # K_1 = 0, K_2 = 1, etc.
+                        if num < len(self.fractales):
+                            self.selected = num
 
 if __name__ == "__main__":
     menu = MenuPrincipal()
@@ -238,6 +293,9 @@ if __name__ == "__main__":
                     import os
                     script_path = os.path.join(os.path.dirname(__file__), "gui", "controls.py")
                     subprocess.Popen([sys.executable, script_path, str(fractal_num)])
-                elif event.key in (K_1, K_2, K_3):
-                    pass
+                elif event.key in (K_1, K_2, K_3, K_4, K_5):
+                    # Selección rápida por número
+                    num = event.key - K_1
+                    if num < len(menu.fractales):
+                        menu.selected = num
         clock.tick(60)

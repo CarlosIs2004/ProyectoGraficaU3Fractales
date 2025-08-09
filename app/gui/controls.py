@@ -8,6 +8,8 @@ from math import pi
 from fractals.CurvaKoch import CurvaKoch
 from fractals.Sierpinski import Sierpinski
 from fractals.ArbolRecursivo import ArbolRecursivo
+from fractals.Julia import Julia
+from fractals.Mandelbrot import Mandelbrot
 
 
 pygame.init()
@@ -18,6 +20,10 @@ pygame.display.set_caption("Fractales Interactivos")
 koch = CurvaKoch()
 SierpinskiF = Sierpinski()
 arbol = ArbolRecursivo()
+
+# Crear instancias de Mandelbrot y Julia
+mandelbrot = Mandelbrot(width=800, height=600)
+julia = Julia(width=800, height=600)
 
 angle = 0
 scale = 100
@@ -44,7 +50,7 @@ def manejar_transformaciones_seguidas():
     if keys[pygame.K_UP]:
         scale += step_zoom
     if keys[pygame.K_DOWN]:
-        scale = max(0.1, scale - step_zoom)
+        scale = max(10, scale - step_zoom)  # Mínimo más alto para fractales complejos
     if keys[pygame.K_LEFT]:
         angle -= step_angle
     if keys[pygame.K_RIGHT]:
@@ -61,7 +67,7 @@ def manejar_transformaciones_seguidas():
 def manejar_eventos_teclado(event):
     global iter, modo_fractal
     if event.key == pygame.K_e:
-        iter += 1
+        iter = min(10, iter + 1)  # Limitar iteraciones máximas para rendimiento
     elif event.key == pygame.K_q:
         iter = max(1, iter - 1)
     elif event.key == pygame.K_1:
@@ -70,11 +76,10 @@ def manejar_eventos_teclado(event):
         modo_fractal = 2
     elif event.key == pygame.K_3:
         modo_fractal = 3
-
-
-
-
-
+    elif event.key == pygame.K_4:
+        modo_fractal = 4
+    elif event.key == pygame.K_5:
+        modo_fractal = 5
 
 def dibujar_sierpinski(screen, sierpinski, scale, angle, pan_x, pan_y, iter):
     segmentos = sierpinski.SierpinskiSegments(scale, angle, pan_x, pan_y, iter)
@@ -92,31 +97,66 @@ def dibujar_arbol(screen, arbol, scale, angle, pan_x, pan_y, iter):
     for start, end in segmentos:
         pygame.draw.line(screen, (0, 255, 0), start, end, 1)
 
-
+def mostrar_info_fractal(screen, modo_fractal, iter, scale, angle):
+    """Muestra información del fractal actual en pantalla"""
+    font = pygame.font.SysFont("Arial", 20)
+    nombres = ["", "Copo de Koch", "Triángulo de Sierpinski", "Árbol Recursivo", 
+               "Conjunto de Mandelbrot", "Conjunto de Julia"]
+    
+    info_lines = [
+        f"Fractal: {nombres[modo_fractal]}",
+        f"Iteraciones: {iter}",
+        f"Escala: {int(scale)}",
+        f"Ángulo: {int(angle * 180/pi)}°"
+    ]
+    
+    for i, line in enumerate(info_lines):
+        text = font.render(line, True, (255, 255, 255))
+        screen.blit(text, (10, 10 + i * 25))
 
 # Mantiene la ventana abierta hasta que la cierres
 running = True
 clock = pygame.time.Clock()
+print("Controles:")
+print("Flechas: Escalar (↑↓) y Rotar (←→)")
+print("WASD: Mover")
+print("Q/E: Cambiar iteraciones")
+print("1-5: Cambiar fractal")
+print("ESC: Salir")
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            manejar_eventos_teclado(event)
-            
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            else:
+                manejar_eventos_teclado(event)
     
     manejar_transformaciones_seguidas()
     screen.fill((0, 0, 0))
+    
     if modo_fractal == 1:
         dibujar_koch(screen, koch, scale, angle, pan_x, pan_y, iter)
     elif modo_fractal == 2:
         dibujar_sierpinski(screen, SierpinskiF, scale, angle, pan_x, pan_y, iter)
     elif modo_fractal == 3:
         dibujar_arbol(screen, arbol, scale, angle, pan_x, pan_y, iter)
+    elif modo_fractal == 4:
+        mandelbrot.dibujar(screen, scale, angle, pan_x, pan_y, iter)
+    elif modo_fractal == 5:
+        julia.dibujar(screen, scale, angle, pan_x, pan_y, iter)
+    
+    # Mostrar información del fractal
+    mostrar_info_fractal(screen, modo_fractal, iter, scale, angle)
     
     pygame.display.flip()
-    clock.tick(50)
-        
-
+    
+    # Reducir FPS para fractales complejos
+    if modo_fractal in [4, 5]:
+        clock.tick(10)  # 10 FPS para Mandelbrot y Julia
+    else:
+        clock.tick(50)  # 50 FPS para fractales geométricos
 
 pygame.quit()
