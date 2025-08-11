@@ -87,23 +87,34 @@ def manejar_eventos_teclado(event):
         modo_fractal = 2
     elif event.key == pygame.K_3:
         modo_fractal = 3
-<<<<<<< HEAD
     elif event.key == pygame.K_4:
         modo_fractal = 4
     elif event.key == pygame.K_5:
         modo_fractal = 5
-=======
 
 def guardar_captura():
     global nameScreen, ruta_carpeta
+    
+    # Crear la carpeta si no existe
+    if not os.path.exists(ruta_carpeta):
+        os.makedirs(ruta_carpeta)
+        print(f"Carpeta creada: {ruta_carpeta}")
+    
     nombre_archivo = datetime.now().strftime(nameScreen + "_%Y%m%d_%H%M%S.png")
     ruta_completa = os.path.join(ruta_carpeta, nombre_archivo)
-    pygame.image.save(screen, ruta_completa)
-    print(f"Captura guardada en: {ruta_completa}")
-
-
-
->>>>>>> 5ddb2e93bb99f81c9a79267e22e251ebde3590cd
+    
+    try:
+        pygame.image.save(screen, ruta_completa)
+        print(f"Captura guardada en: {ruta_completa}")
+    except Exception as e:
+        print(f"Error al guardar la captura: {e}")
+        # Como alternativa, guardar en el directorio actual
+        nombre_archivo_alt = datetime.now().strftime(nameScreen + "_%Y%m%d_%H%M%S.png")
+        try:
+            pygame.image.save(screen, nombre_archivo_alt)
+            print(f"Captura guardada en directorio actual: {nombre_archivo_alt}")
+        except Exception as e2:
+            print(f"Error al guardar en directorio actual: {e2}")
 
 def dibujar_sierpinski(screen, sierpinski, scale, angle, pan_x, pan_y, iter):
     segmentos = sierpinski.SierpinskiSegments(scale, angle, pan_x, pan_y, iter)
@@ -121,7 +132,6 @@ def dibujar_arbol(screen, arbol, scale, angle, pan_x, pan_y, iter):
     for start, end in segmentos:
         pygame.draw.line(screen, (0, 255, 0), start, end, 1)
 
-<<<<<<< HEAD
 def mostrar_info_fractal(screen, modo_fractal, iter, scale, angle):
     """Muestra información del fractal actual en pantalla"""
     font = pygame.font.SysFont("Arial", 20)
@@ -138,7 +148,6 @@ def mostrar_info_fractal(screen, modo_fractal, iter, scale, angle):
     for i, line in enumerate(info_lines):
         text = font.render(line, True, (255, 255, 255))
         screen.blit(text, (10, 10 + i * 25))
-=======
 import pygame
 
 def crear_boton(screen, rect, texto, color_fondo, color_texto):
@@ -149,7 +158,6 @@ def crear_boton(screen, rect, texto, color_fondo, color_texto):
     texto_rect = texto_renderizado.get_rect(center=rect.center)
     screen.blit(texto_renderizado, texto_rect)
 
->>>>>>> 5ddb2e93bb99f81c9a79267e22e251ebde3590cd
 
 # Mantiene la ventana abierta hasta que la cierres
 running = True
@@ -166,17 +174,13 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-<<<<<<< HEAD
             if event.key == pygame.K_ESCAPE:
                 running = False
             else:
                 manejar_eventos_teclado(event)
-=======
-            manejar_eventos_teclado(event)
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if boton_rect.collidepoint(event.pos):
                 guardar_captura()
->>>>>>> 5ddb2e93bb99f81c9a79267e22e251ebde3590cd
     
     manejar_transformaciones_seguidas()
     screen.fill((0, 0, 0))
@@ -190,19 +194,17 @@ while running:
     elif modo_fractal == 3:
         nameScreen = "Arbol Recursivo"
         dibujar_arbol(screen, arbol, scale, angle, pan_x, pan_y, iter)
-<<<<<<< HEAD
     elif modo_fractal == 4:
+        nameScreen = "Mandelbrot"
         mandelbrot.dibujar(screen, scale, angle, pan_x, pan_y, iter)
     elif modo_fractal == 5:
+        nameScreen = "Julia"
         julia.dibujar(screen, scale, angle, pan_x, pan_y, iter)
     
     # Mostrar información del fractal
     mostrar_info_fractal(screen, modo_fractal, iter, scale, angle)
-=======
     crear_boton(screen, boton_rect, "Captura", AZUL, BLANCO)   
->>>>>>> 5ddb2e93bb99f81c9a79267e22e251ebde3590cd
     
-
     pygame.display.flip()
     
     # Reducir FPS para fractales complejos
